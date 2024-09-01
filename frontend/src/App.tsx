@@ -1,28 +1,42 @@
-import { useState } from 'react'
 import './App.css'
-import Sheet from './components/Sheet'
-import exampleData from './example_data'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import RootLayout from './layouts/route-layout'
+import IndexPage from './routes/LandingPage'
+import DashboardPage from './routes/Dashboard'
+import { useAuth, useClerk } from '@clerk/clerk-react'
+// import InvoicesPage from './routes/Invoices'
+// import ContactPage from './routes/Contact'
+import SignInPage from './routes/Sign-in'
+import SignUpPage from './routes/Sign-up'
+import { useEffect } from 'react'
+import axios from 'axios'
+// import NotFoundPage from './routes/NotFound'
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: '/', element: <IndexPage /> },
+      // { path: '/contact', element: <ContactPage /> },
+      { path: '/sign-in/*', element: <SignInPage /> },
+      { path: '/sign-up/*', element: <SignUpPage /> },
+      {
+        // element: <DashboardLayout />,
+        path: 'dashboard',
+        children: [
+          { path: '/dashboard', element: <DashboardPage /> },
+          // { path: '/dashboard/invoices', element: <InvoicesPage /> },
+        ],
+      },
+    ],
+  },
+])
 
 function App() {
-  const [read, setRead] = useState(false)
 
   return (
-    <div style={{ height: "100vh" }}>
-      <button onClick={() => setRead(!read)}>toggle mode</button>
-      <Sheet
-        height="80%"
-        data={exampleData}
-        options={
-          read && {
-            mode: "read",
-            showToolbar: false,
-            showGrid: false,
-            showContextmenu: false
-          }
-        }
-      />
-      <br />
-    </div>
+    
+    <RouterProvider router={router} />
   );
 }
 

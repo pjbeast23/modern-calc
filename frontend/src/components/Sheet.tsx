@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import XSpreadsheet from "x-data-spreadsheet";
 import "x-data-spreadsheet/dist/xspreadsheet.css";
 import ExportXLSX from "../ExportXLSX";
 import io from "socket.io-client";
+import { useAuth, useClerk } from "@clerk/clerk-react";
+import axios from "axios";
 
-const socket = io("http://localhost:4000");
+const socket = io("http://localhost:3000");
 
 type Props = {
     height?: string;
@@ -22,6 +24,43 @@ const Spreadsheet: React.FC<Props> = ({
     const sheetEl = React.useRef<HTMLDivElement>(null);
     const sheetRef = React.useRef<XSpreadsheet | null>(null);
     const [state, setState] = React.useState(data || {});
+    const { isSignedIn } = useAuth()
+  const clerk = useClerk()
+
+  useEffect(() => {
+    if (isSignedIn) {
+      const user = clerk.user;
+      if (!user) {
+        return;
+      }
+      const data = JSON.stringify( {
+        userId: user.id,
+        email: user.primaryEmailAddress?.emailAddress,
+      });
+
+      // Post to /auth route when the user is authenticated
+      axios.post("http://localhost:3000/auth", data);
+    }
+
+    // Listen to changes in the authentication state
+    const unsubscribe = clerk.addListener((event) => {
+      if (event.client.isNew()) {
+        const user = clerk.user;
+        if (!user) {
+          return;
+        }
+
+        axios.post("http://localhost:3000/auth", data);
+      }
+    });
+
+    // Cleanup the event listener on component unmount
+    return () => {
+      unsubscribe();
+    };
+  }, [isSignedIn, clerk]);
+
+
 
     React.useEffect(() => {
         const element = sheetEl.current;
@@ -47,7 +86,7 @@ const Spreadsheet: React.FC<Props> = ({
         });
 
         socket.on('update-cell', ({text, ri, ci}) => {
-          sheet.cellText(ri, ci,text).cellText(ri, ci, text).reRender();//do not change
+          sheet.cellText(ri, ci,text)?.cellText(ri, ci, text)?.reRender();//do not change
         });
 
         sheetRef.current = sheet;
