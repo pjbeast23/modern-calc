@@ -12,6 +12,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 const app = express();
 app.use(cors());
+app.use(express.json());
 // app.use(requireAuth);
 (async () => {
   const userList = await clerkClient.users.getUserList();
@@ -40,8 +41,8 @@ io.on('connection', (socket) => {
 
 app.post('/auth', async (req, res) => {
   try {
-    console.log(req.body);
-    const user = await clerkClient.users.getUser(req?.body?.auth?.userId);
+    const {userId, email} = req.body;
+    const user = await clerkClient.users.getUser(userId);
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: user.id },
     });
@@ -62,11 +63,10 @@ app.post('/auth', async (req, res) => {
 
 
 app.post('/worksheets', async (req, res) => {
-  const { title, content } = req.body;
-  const userId = req.body.auth.userId;
+  const { userId,title, content } = req.body;
 
   const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
+    where: { clerkId: String(userId) },
   });
   if (!user) {
     return res.status(400).json({ message: 'User not found' });
@@ -84,10 +84,12 @@ app.post('/worksheets', async (req, res) => {
 });
 
 app.get('/worksheets', async (req, res) => {
-  const userId = req.body.auth.userId;
-
+  const {userId, email} = req.query;
+  if (!userId) {
+    return res.status(400).json({ message: 'User not found' });
+  }
   const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
+    where: { clerkId: String(userId) },
   });
   if (!user) {
     return res.status(400).json({ message: 'User not found' });
@@ -98,6 +100,17 @@ app.get('/worksheets', async (req, res) => {
   });
 
   res.status(200).json(workbooks);
+});
+
+app.get('/worksheets/:id', async (req, res) => {
+  const { id } = req.params;
+  const workbook = await prisma.worksheet.findUnique({
+    where: { id: id },
+  });
+  if (!workbook) {
+    return res.status(404).json({ message: 'Workbook not found' });
+  }
+  res.status(200).json(workbook);
 });
 
 // Similar endpoints can be created for updating and deleting workbooks

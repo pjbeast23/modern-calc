@@ -33,10 +33,10 @@ const Spreadsheet: React.FC<Props> = ({
       if (!user) {
         return;
       }
-      const data = JSON.stringify( {
+      const data = {
         userId: user.id,
         email: user.primaryEmailAddress?.emailAddress,
-      });
+      };
 
       // Post to /auth route when the user is authenticated
       axios.post("http://localhost:3000/auth", data);
@@ -107,9 +107,9 @@ const Spreadsheet: React.FC<Props> = ({
                 ref={sheetEl}
             >
             </div>
-            <div>
+            {/* <div>
                 <pre>{JSON.stringify(state, null, 2)}</pre>
-            </div>
+            </div> */}
         </>
     );
 }

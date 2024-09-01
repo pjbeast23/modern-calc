@@ -3,13 +3,12 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import RootLayout from './layouts/route-layout'
 import IndexPage from './routes/LandingPage'
 import DashboardPage from './routes/Dashboard'
-import { useAuth, useClerk } from '@clerk/clerk-react'
 // import InvoicesPage from './routes/Invoices'
 // import ContactPage from './routes/Contact'
 import SignInPage from './routes/Sign-in'
 import SignUpPage from './routes/Sign-up'
-import { useEffect } from 'react'
-import axios from 'axios'
+import Sheet from './components/Sheet'
+import SpreadSheet from './components/SpreadSheet'
 // import NotFoundPage from './routes/NotFound'
 
 const router = createBrowserRouter([
@@ -28,6 +27,11 @@ const router = createBrowserRouter([
           // { path: '/dashboard/invoices', element: <InvoicesPage /> },
         ],
       },
+      {path: '/sheet', element: <SpreadSheet />,
+      children:[{
+        path: '/sheet/:id', element: <SpreadSheet />
+      }]
+        }
     ],
   },
 ])
